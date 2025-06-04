@@ -28,17 +28,6 @@ Para ejecutar el proyecto, debes configurar el archivo .env con los datos necesa
 `ASSISTANT_ID`
 
 
-## Usage/Examples
-
-```javascript
-import Component from 'my-project'
-
-function App() {
-  return <Component />
-}
-```
-
-
 # Documentation
 
 Endpoints:
