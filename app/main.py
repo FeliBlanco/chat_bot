@@ -1,7 +1,6 @@
 from fastapi import FastAPI, Depends
 from pydantic import BaseModel
 from openai import OpenAI
-import os
 from config import settings
 import time
 import json
