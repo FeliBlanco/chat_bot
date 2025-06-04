@@ -1,0 +1,15 @@
+[
+    {
+        "dia": "Lunes a Viernes",
+        "horarios": [
+            "08:30 a 12:00",
+            "15:30 a 20:0"
+        ]
+    },
+    {
+        "dia": "Sábados",
+        "horarios": [
+            "08:30 a 12:00"
+        ]
+    }
+]

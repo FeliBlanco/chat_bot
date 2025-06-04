@@ -1,0 +1,25 @@
+version: "3.9"
+
+services:
+  api:
+    build: .
+    container_name: apii
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    volumes:
+      - ./app:/app
+    restart: unless-stopped
+  db:
+    image: postgres:15
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: feli
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+volumes:
+  postgres_data:
