@@ -149,6 +149,13 @@ def ejecutar_asistente(prompt: str):
                             "tool_call_id": call.id,
                             "output": json.dumps(resultado)
                         })
+                    elif call.function.name == "get_available_phones":
+                        #llama a la funcion de obtener productos disponibles
+                        resultado = get_productos()
+                        tool_outputs.append({
+                            "tool_call_id": call.id,
+                            "output": json.dumps(resultado)
+                        })
                     elif call.function.name == "get_horarios":
                         #o si llama a la funcion de horarios
                         horarios = get_horarios()
@@ -198,6 +205,15 @@ def ejecutar_asistente(prompt: str):
 
         return "ok"
 
+def get_productos():
+    try:
+        db: Session = next(get_db())
+        productos = db.query(models.Producto).all()
+        return productos
+    except Exception as e:
+        print(e)
+        return {"error": str(e)}
+
 def buscar_producto(nombre: str):
     print("BUSCAR PRODUCTOS")
     try:
@@ -212,7 +228,7 @@ def buscar_producto(nombre: str):
             }
         else:
             print("No hay producto")
-            return {"error": "Producto no encontrado"}
+            return {"error": "Producto sin stock"}
     except Exception as e:
         print(e)
         return {"error": str(e)}

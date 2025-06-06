@@ -33,7 +33,6 @@ def crear_evento():
 
 def get_eventos():
     service = get_calendar_service()
-    print("AA")
     eventos = service.events().list(
         calendarId='blancofeli9@gmail.com',
         maxResults=10,
@@ -45,10 +44,9 @@ def get_eventos():
 def get_eventos_por_fecha(fecha_str):
     service = get_calendar_service()
 
-    # Convertir la fecha de string a datetime
     fecha = datetime.strptime(fecha_str, "%Y-%m-%d")
-    time_min = fecha.isoformat() + 'Z'  # Comienzo del día en UTC
-    time_max = (fecha + timedelta(days=1)).isoformat() + 'Z'  # Fin del día en UTC
+    time_min = fecha.isoformat() + 'Z'
+    time_max = (fecha + timedelta(days=1)).isoformat() + 'Z'
 
     eventos = service.events().list(
         calendarId="blancofeli9@gmail.com",
@@ -65,22 +63,16 @@ def sacar_turno(fecha_hora_str):
 
     fecha_hora = datetime.strptime(fecha_hora_str, "%Y-%m-%dT%H:%M")
 
-    print(fecha_hora)
-    print(fecha_hora.strftime("%B"))
-    
-
     tz = pytz.timezone("America/Argentina/Buenos_Aires")
     fecha_inicio = tz.localize(fecha_hora)
-    fecha_fin = fecha_inicio + timedelta(minutes=20)  # Duración de 20 minutos
+    fecha_fin = fecha_inicio + timedelta(minutes=20)
 
-    print(fecha_inicio)
-    print(fecha_fin)
-    print(fecha_fin.isoformat())
 
     body = {
         "timeMin": fecha_inicio.isoformat(),
         "timeMax": fecha_fin.isoformat(),
-        "items": [{"id": "blancofeli9@gmail.com"}]  # Usar el mismo email que en las otras funciones
+        "timeZone": "America/Argentina/Buenos_Aires",
+        "items": [{"id": "blancofeli9@gmail.com"}]
     }
 
     response = service.freebusy().query(body=body).execute()
