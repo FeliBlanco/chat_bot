@@ -2,14 +2,23 @@ version: "3.9"
 
 services:
   api:
-    build: .
+    build: ./app
     container_name: apii
     ports:
       - "8000:8000"
+      - "8080:8080"
     depends_on:
       - db
     volumes:
       - ./app:/app
+    restart: unless-stopped
+  micro_wsp:
+    build: ./micro_wsp
+    container_name: micro_wsp
+    ports:
+      - "8001:8001"
+    depends_on:
+      - api
     restart: unless-stopped
   db:
     image: postgres:15

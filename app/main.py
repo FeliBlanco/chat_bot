@@ -1,4 +1,5 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Request
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from openai import OpenAI
 from config import settings
@@ -8,10 +9,24 @@ from sqlalchemy.orm import Session
 import models
 import schemas
 from database import SessionLocal, engine, Base
+import calendar_service
+from send_message import send_message
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+#configuramos el cors etc
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+motor_gpt = "gpt-3.5-turbo"
+modo_bot = "asistente"
 
 #para conectarse a openai
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
@@ -27,14 +42,52 @@ def get_db():
     finally:
         db.close()
 
-#ruta para hablar con el asistente
-@app.get("/")
-def chat(prompt: str = None):
+@app.get("/dispo")
+def get_dispo():
+    return calendar_service.get_disponibilidad("2025-06-05T18:00")
+
+@app.post("/modelo")
+async def change_model(request: Request):
+    data = await request.json()
+    global motor_gpt, modo_bot
+    motor_gpt = data["modelo"]
+    modo_bot = data["mode"]
+    return {
+        "modelo": motor_gpt,
+        "mode": modo_bot
+    }
+
+@app.get("/modelo")
+def get_model():
+    return {
+        "modelo": motor_gpt,
+        "mode": modo_bot
+    }
+
+@app.get("/citas")
+def get_citas():
+    print("Obteniendo citas")
     try:
-        if settings.ENGINE_IA == 0:
-            return ejecutar_asistente(prompt)
-        elif settings.ENGINE_IA == 1:
-            return ejecutar_chat(prompt)
+        eventos = calendar_service.get_eventos()
+        return {"eventos": eventos}
+    except Exception as e:
+        return {"error": str(e)}
+    
+
+#ruta para hablar con el asistente
+@app.get("/test")
+def test():
+    calendar_service.sacar_turno("2025-06-05T18:00")
+    return "hola"
+
+@app.post("/")
+async def chat(request: Request):
+    try:
+        data = await request.json()
+        if modo_bot == "asistente":
+            return ejecutar_asistente(data["prompt"])
+        elif modo_bot == "chat":
+            return ejecutar_chat(data["prompt"])
     except Exception as e:
         return {"error": str(e)}
 
@@ -56,10 +109,11 @@ def crear_producto(nombre: str, precio: int, db: Session = Depends(get_db)):
 
 def ejecutar_chat(prompt: str):
     response = client.responses.create(
-        model="gpt-4.1",
+        model=motor_gpt,
         input=prompt
     )
     return response.output_text
+
 def ejecutar_asistente(prompt: str):
     #crear mensaje en el thread
         message = client.beta.threads.messages.create(
@@ -102,6 +156,27 @@ def ejecutar_asistente(prompt: str):
                             "tool_call_id": call.id,
                             "output": json.dumps(horarios)
                         })
+                    elif call.function.name == "schedule_appointment":
+                        print("BUSCAR AGENDAA")
+                        args = json.loads(call.function.arguments)
+                        print(args)
+                        fecha_hora_str = f"{args['date']}T{args['time']}"
+                        nuevo_turno = calendar_service.sacar_turno(fecha_hora_str)
+                        if nuevo_turno == True:
+                            tool_outputs.append({
+                                "tool_call_id": call.id,
+                                "output": "Turno sacado correctamente"
+                            })
+
+                            send_message(args['whatsapp'], "Sacaste un turno para el " + args['date'] + " a las " + args['time'] + ".")
+          
+                        else:
+                            tool_outputs.append({
+                                "tool_call_id": call.id,
+                                "output": "No hay turnos disponibles en esa fecha y hora"
+                            })  
+                            
+
                 client.beta.threads.runs.submit_tool_outputs(
                     thread_id=thread.id,
                     run_id=run.id,

@@ -1,1 +1,5 @@
 .env
+node_modules
+session_auth_info
+credenciales.json
+permisos.json
