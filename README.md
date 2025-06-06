@@ -32,6 +32,10 @@ Para ejecutar el proyecto, debes configurar el archivo .env con los datos necesa
 
 Endpoints:
 
+GET`http://localhost:8000/citas`
+Ver las citas disponibles (traidas desde Google Calender)
+
+
 GET`http://localhost:8000/productos`
 Lista los productos de la base de datos
 
@@ -43,6 +47,11 @@ Muestra los logs de consulta y respuesta al bot
 
 GET `http://localhost:8000?prompt=`
 Habla con el bot
+
+## Frontend
+
+`https://github.com/FeliBlanco/chat_bot_front` (Vite JS)
+Ejecutar `npm i` y `npm run dev`
 
 ### Archivo horarios.json
 En este archivo, podrás agregar los dias y horarios de atención, para que el bot pueda responder.
@@ -65,4 +74,4 @@ Ejemplo:
 ]`
 ## Tech Stack
 
-**Server:** Python, FastAPI, PostgreSQL, Docker
+**Server:** Python, FastAPI, PostgreSQL, Docker, Node JS, Express
